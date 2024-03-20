@@ -5,6 +5,14 @@ body {
     margin: 0;
 }
 
+.container {
+    display: flex;
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+
+}
+
 ul {
     position: sticky;
     top: 0;
@@ -37,6 +45,12 @@ ul {
   li a:hover {
     background-color: #111;
   }
+
+  #map {
+    width: 80%;
+    height: 50rem;
+    margin: 0.5rem;
+}
 
 
   footer {
