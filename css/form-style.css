@@ -5,14 +5,6 @@ body {
     margin: 0;
 }
 
-.container {
-    display: flex;
-    width: 80%;
-    margin: auto;
-    overflow: hidden;
-
-}
-
 ul {
     position: sticky;
     top: 0;
@@ -22,14 +14,7 @@ ul {
     padding: 0;
     overflow: hidden;
     background-color: #333;
-  }
-
-  ul input {
-    margin: 0.5rem;
-    border-radius: 25px;
-    padding: 2px;
-  }
-
+  }  
   li {
     float: right;
   }
@@ -46,7 +31,6 @@ ul {
     color: white;
     padding: 0.5rem;
     text-decoration: none;
-    font-size: 14px;
   }
   
 
@@ -54,17 +38,35 @@ ul {
     background-color: #111;
   }
 
-  #map {
-    width: 100%;
-    height: 100vh;
-    margin: 0;
-    padding: 0;
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+form {
+    padding: 1rem;
+    border: 1px solid #111;
+    border-radius: 5px;
+    text-align: center;
+    background-color: lightgray;
+}
+
+.login-form {
+    display: flex;
+    min-height: 50vh;
+    justify-content: center;
+    align-items: center;
+}
+
+#username, #password {
+    display: block;
+    margin-bottom: 1rem;
+    margin-top: 0.5rem;
 }
 
 
-  footer {
-    color: whitesmoke;
-    padding: 0.5rem;
-    background-color: #333;
-    text-align: center;
-  }
+button[type="submit"] {
+    padding: 0.5rem 2rem 0.5rem;
+}
