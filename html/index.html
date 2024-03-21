@@ -16,21 +16,48 @@
       crossorigin=""
     ></script>
     <script src="/js/main.js" defer></script>
-    <title>Opiskelija ravintolat</title>
+    <title>Ravintolat</title>
   </head>
   <body>
     <header>
       <nav>
         <ul>
             <input type="search" placeholder="Search..">
-          <li><a href="register.html">Register</a></li>
-          <li><a href="login.html">Login</a></li>
+          <li><a href="#register" id="register-button">Register</a></li>
+          <li><a href="#login" id="login-button">Login</a></li>
           <li><a href="index.html">Home</a></li>
-          <h1>Opiskelijaravintolat</h1>
+          <h1>Ravintolat</h1>
         </ul>
       </nav>
     </header>
     <div class="conatiner">
+      <div class="login-modal" id="login-modal-id">
+        <span class="close" title="Close Modal">&times;</span>
+
+        <form class="login-modal-content">
+          <label for="login-username"><b>Username</b></label>
+          <input type="text" name="login-username" id="login-username" placeholder="Enter Username" required>
+
+          <label for="login-password"><b>Password</b></label>
+          <input type="password" name="login-password" id="login-password" placeholder="Enter Password" required>
+
+          <button type="submit">Login</button>
+        </form>
+      </div>
+
+      <div class="register-modal" id="register-modal-id">
+        <span class="close" title="Close Modal">&times;</span>
+
+        <form class="register-modal-content">
+          <label for="register-username"><b>Username</b></label>
+          <input type="text" name="register-username" id="register-username" placeholder="Enter Username" required>
+
+          <label for="register-password"><b>Password</b></label>
+          <input type="register-password" name="register-password" id="register-password" placeholder="Enter Password" required>
+
+          <button type="submit">Register</button>
+        </form>
+      </div>
       <div id="map"></div>
     </div>
   </body>
