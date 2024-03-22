@@ -11,7 +11,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 
 const modal = document.getElementById('login-modal-id');
-window.onclick = function() {
+window.onclick = function(event) {
     if (event.target == modal) {
         modal.style.display = "none";
     }
