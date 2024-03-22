@@ -7,9 +7,23 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
-let markers = [];
+let markers = [
+    { lat: 60.1695, lon: 24.9354, city: 'Helsinki' },
+];
 
 const marker = L.marker([60.1695, 24.9354]).addTo(map);
+
+function clearMarkers() {
+    for (let marker of markers) {
+       map.removeLayer(marker);
+    }
+}
+
+function addMarkers(filteredMarkers) {
+    for (let marker of filteredMarkers) {
+        L.marker([marker.lat, market.lon]).addTo(map);
+    }
+}
 
 let foodMenu = `
     <h2>Restaurant's Weekly Menu</h2>
