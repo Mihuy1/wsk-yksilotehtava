@@ -8,6 +8,8 @@ body {
 .container {
     display: block;
     padding: 1rem;
+    text-align: center;
+    justify-content: center;
 }
 
 nav h1 {
@@ -160,6 +162,37 @@ nav ul {
   height: 20vh;
 }
 
+.profile-settings img {
+  border-radius: 50%;
+  overflow: hidden;
+  padding: 15px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.profile-form input {
+  display: block;
+  margin: 0 auto;
+  width: 30%;
+  height: 2rem;
+  background: #f5f5f5;
+  outline: none;
+  border: none;
+  border-radius: 1.625rem;
+  font-size: 1rem;
+}
+
+.profile-settings {
+  background-color: grey;
+  padding: 1rem;
+  margin: 1rem;
+  width: 30%;
+  margin: 0 auto;
+}
 
 #login-username, #login-password, #register-username, #register-password {
   display: block;

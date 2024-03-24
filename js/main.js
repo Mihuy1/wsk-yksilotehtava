@@ -41,7 +41,7 @@ let foodMenu = `
 marker.bindPopup(foodMenu);
 
 const modal = document.getElementById('login-modal-id');
-window.onclick = function() {
+window.onclick = function(event) {
     if (event.target == modal) {
         modal.style.display = "none";
     }
