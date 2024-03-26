@@ -81,6 +81,31 @@ li a:hover {
   border-radius: 0 10px 10px 0;
 }
 
+.sidepanel form input {
+  display: block;
+  margin: 0;
+  margin-bottom: 2rem;
+  padding: 0 0 0 1.5rem;
+  height: 2rem;
+  background: whitesmoke;
+  outline: none;
+  border: none;
+  border-radius: 1.625rem;
+  font-size: 1rem;
+}
+
+.sidepanel form button {
+  display: block;
+  /*margin: auto;*/ /*Test*/
+  margin-top: 5rem;
+  border: none;
+  outline: none;
+  height: 2rem;
+  font-size: 1rem;
+  border-radius: 1.625rem;
+  padding: 0 1.5rem 0 1.5rem;
+}
+
 #map {
   flex: 1;
   height: calc(100vh - 60px);
