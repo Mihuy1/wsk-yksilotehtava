@@ -4,7 +4,7 @@ body {
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-  background-color: #FFFCF2; /* Cream */
+  background-color: #fffcf2; /* Cream */
   color: #252422; /* Black Bean */
 }
 
@@ -16,7 +16,7 @@ body {
 nav h1 {
   font-size: 20px;
   margin-left: 1rem;
-  color: #FFFCF2; /* Cream */
+  color: #fffcf2; /* Cream */
 }
 
 nav ul {
@@ -63,21 +63,21 @@ nav ul li {
 
 nav ul li a {
   display: block;
-  color: #FFFCF2;
+  color: #fffcf2;
   padding: 0.5rem;
   text-decoration: none;
   font-size: 16px;
 }
 
 li a:hover {
-  background-color: #403D39;
+  background-color: #403d39;
 }
 
 .sidepanel {
   flex: 0 0 18%;
-  background-color: #403D39;
+  background-color: #403d39;
   padding: 1rem;
-  color: #FFFCF2;
+  color: #fffcf2;
   border-radius: 0 10px 10px 0;
 }
 
@@ -103,7 +103,7 @@ li a:hover {
 
 .login-modal-content,
 .register-modal-content {
-  background-color: #403D39;
+  background-color: #403d39;
   color: whitesmoke;
   margin: 5px auto;
   border: 1px solid #252422;
@@ -113,6 +113,8 @@ li a:hover {
   display: flex;
   flex-direction: column;
   height: 20vh;
+  min-height: 300px;
+  height: auto;
   border-radius: 1.625rem;
 }
 
@@ -134,19 +136,27 @@ li a:hover {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #403D39;
+  background-color: #403d39;
   padding: 1rem;
   margin: 1rem;
   width: 30%;
   margin: 0 auto;
-  color: #FFFCF2;
+  color: #fffcf2;
 }
 
 .profile-settings img {
   background-color: #252422;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   padding: 15px;
+  object-fit: cover; /* Maintain aspect ratio */
+  border-radius: 50%;
   margin-bottom: 1rem;
+}
+
+.profile-settings img:hover {
+  cursor: pointer;
 }
 
 .profile-form {
@@ -180,7 +190,7 @@ li a:hover {
 
 .profile-form button:hover {
   cursor: pointer;
-  background-color: #CCC5B9;
+  background-color: #ccc5b9;
 }
 
 #login-username,
@@ -193,9 +203,9 @@ li a:hover {
 }
 
 footer {
-  color: #FFFCF2;
+  color: #fffcf2;
   padding: 0.5rem;
   background-color: #252422;
   text-align: center;
-  height: 10px
+  height: 10px;
 }

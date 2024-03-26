@@ -1,28 +1,27 @@
-'use strict';
+"use strict";
 
-const map = L.map('map').setView([60.1695, 24.9354], 13);
+const map = L.map("map").setView([60.1695, 24.9354], 13);
 
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution:
+    '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
 
-let markers = [
-    { lat: 60.1695, lon: 24.9354, city: 'Helsinki' },
-];
+let markers = [{ lat: 60.1695, lon: 24.9354, city: "Helsinki" }];
 
 const marker = L.marker([60.1695, 24.9354]).addTo(map);
 
 function clearMarkers() {
-    for (let marker of markers) {
-       map.removeLayer(marker);
-    }
+  for (let marker of markers) {
+    map.removeLayer(marker);
+  }
 }
 
 function addMarkers(filteredMarkers) {
-    for (let marker of filteredMarkers) {
-        L.marker([marker.lat, market.lon]).addTo(map);
-    }
+  for (let marker of filteredMarkers) {
+    L.marker([marker.lat, market.lon]).addTo(map);
+  }
 }
 
 let foodMenu = `
@@ -40,39 +39,40 @@ let foodMenu = `
 
 marker.bindPopup(foodMenu);
 
-const modal = document.getElementById('login-modal-id');
-window.onclick = function(event) {
-    if (event.target == modal) {
-        modal.style.display = "none";
-    }
+const modal = document.getElementById("login-modal-id");
+window.onclick = function (event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
 };
 
-const loginButton = document.getElementById('login-button');
+const loginButton = document.getElementById("login-button");
 
-loginButton.addEventListener('click', function() {
-        console.log('click');
-        modal.style.display = "block";
-}
-);
+loginButton.addEventListener("click", function () {
+  console.log("click");
+  modal.style.display = "block";
+});
 
-const registerButton = document.getElementById('register-button');
+const registerButton = document.getElementById("register-button");
 
-registerButton.addEventListener('click', function() {
-        console.log('click');
-        modal.style.display = "block";
-}
-);
+registerButton.addEventListener("click", function () {
+  console.log("click");
+  modal.style.display = "block";
+});
 
-window.addEventListener('load', function() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-            map.setView([latitude, longitude], 13);
-        }, function(error) {
-            console.log('Error getting current position:', error);
-        });
-    } else {
-        console.log('Geolocation is not supported by this browser.');
-    }
-}); 
+window.addEventListener("load", function () {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        map.setView([latitude, longitude], 13);
+      },
+      function (error) {
+        console.log("Error getting current position:", error);
+      }
+    );
+  } else {
+    console.log("Geolocation is not supported by this browser.");
+  }
+});
