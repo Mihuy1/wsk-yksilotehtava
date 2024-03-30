@@ -39,25 +39,29 @@ let foodMenu = `
 
 marker.bindPopup(foodMenu);
 
-const modal = document.getElementById("login-modal-id");
-window.onclick = function (event) {
-  if (event.target == modal) {
-    modal.style.display = "none";
+const loginModal = document.getElementById("login-modal-id");
+const registerModal = document.getElementById("register-modal-id");
+
+window.addEventListener("click", function (event) {
+  if (event.target == loginModal) {
+    loginModal.style.display = "none";
+  } else if (event.target == registerModal) {
+    registerModal.style.display = "none";
   }
-};
+});
 
 const loginButton = document.getElementById("login-button");
 
 loginButton.addEventListener("click", function () {
   console.log("click");
-  modal.style.display = "block";
+  loginModal.style.display = "block";
 });
 
 const registerButton = document.getElementById("register-button");
 
 registerButton.addEventListener("click", function () {
   console.log("click");
-  modal.style.display = "block";
+  registerModal.style.display = "block";
 });
 
 window.addEventListener("load", function () {
@@ -76,3 +80,49 @@ window.addEventListener("load", function () {
     console.log("Geolocation is not supported by this browser.");
   }
 });
+
+function createUser(username, password) {
+  if (localStorage.getItem(username)) {
+    alert("Username already exists!");
+    return;
+  }
+
+  localStorage.setItem(username, password);
+  console.log("User created successfully!");
+}
+
+function login(username, password) {
+  const storedPassword = localStorage.getItem(username);
+  if (storedPassword === password) {
+    console.log("Login successful!");
+    return true;
+  } else {
+    console.error("Login failed!");
+    return false;
+  }
+}
+
+
+// Listen to form submission
+
+const registerForm = document.querySelector(".register-modal-content");
+const loginForm = document.querySelector(".login-modal-content")
+
+registerForm.addEventListener('submit', evt => {
+    evt.preventDefault();
+
+    const username = document.querySelector("#register-username").value;
+    const password = document.querySelector("#register-password").value;
+
+    createUser(username, password);
+})
+
+loginForm.addEventListener('submit', evt => {
+    evt.preventDefault();
+
+    const username = document.querySelector("#login-username").value;
+    const password = document.querySelector("#login-password").value;
+
+    login(username, password);
+});
+
