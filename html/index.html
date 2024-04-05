@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -28,9 +28,17 @@
           </div>
           <div class="right-side">
             <li><a href="#login" id="login-button">Login</a></li>
-            <li><a href="#logout" id="logout-button" style="display: none;">Logout</a></li>
+            <li>
+              <a href="#logout" id="logout-button" style="display: none"
+                >Logout</a
+              >
+            </li>
             <li><a href="#register" id="register-button">Register</a></li>
-            <li><a href="profile.html" id="profile-button" style="display: none;">Profile</a></li>
+            <li>
+              <a href="profile.html" id="profile-button" style="display: none"
+                >Profile</a
+              >
+            </li>
           </div>
         </ul>
       </nav>
@@ -39,9 +47,28 @@
       <div class="sidepanel">
         <h1>Filter</h1>
         <form id="filter-form">
-          <input type="text" id="city-input" placeholder="Enter city" />
+          <label for="city">Choose a city</label>
+          <select id="city">
+            <option value="all">All</option>
+            <option value="Helsinki">Helsinki</option>
+            <option value="Espoo">Espoo</option>
+            <option value="Vantaa">Vantaa</option>
+            <option value="Hämeenlinna">Hämeenlinna</option>
+            <option value="Kouvola">Kouvola</option>
+            <option value="Järvenpää">Järvenpää</option>
+            <option value="Pori">Pori</option>
+            <option value="Oulu">Oulu</option>
+            <option value="Kokkola">Kokkola</option>
+            <option value="Ylivieska">Ylivieska</option>
+            <option value="Jyväskylä">Jyväskylä</option>
+          </select>
 
-          <input type="text" id="provider" placeholder="Enter provider" />
+          <label for="company">Choose a company</label>
+          <select>
+            <option value="all">All</option>
+            <option value="Sodexo">Sodexo</option>
+            <option value="CompassGroup">Compass Group</option>
+          </select>
 
           <button type="submit">Filter</button>
         </form>

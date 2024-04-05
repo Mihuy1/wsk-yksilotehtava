@@ -10,27 +10,6 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let markers = [{lat: 60.1695, lon: 24.9354, city: 'Helsinki'}];
 
-const marker = L.marker([60.1695, 24.9354]).addTo(map);
-
-function clearMarkers() {
-  for (let marker of markers) {
-    map.removeLayer(marker);
-  }
-}
-
-function addMarkers(filteredMarkers) {
-  for (let marker of filteredMarkers) {
-    L.marker([marker.lat, market.lon]).addTo(map);
-  }
-}
-
-const restaurantNameh2 = document.createElement('h2');
-const restaurantAddress = document.createElement('p');
-const restaurantPostalCode = document.createElement('p');
-const restaurantCity = document.createElement('p');
-const restaurantPhone = document.createElement('p');
-const restaurantCompany = document.createElement('p');
-
 const allRestaurants = 'https://10.120.32.94/restaurant/api/v1/restaurants/';
 
 const loginModal = document.getElementById('login-modal-id');
@@ -45,73 +24,209 @@ const usernameInput = document.querySelector('#login-username');
 const incorrectPassword = document.querySelector('#incorrect-password');
 incorrectPassword.style.paddingBottom = '1rem';
 
-function displayRestaurantInfo(restaurant) {
-  restaurantNameh2.innerHTML = restaurant.name;
-  restaurantAddress.innerHTML = restaurant.address;
-  restaurantPostalCode.innerHTML = restaurant.postalCode;
-  restaurantCity.innerHTML = restaurant.city;
-  restaurantPhone.innerHTML = restaurant.phone;
-  restaurantCompany.innerHTML = restaurant.company;
+async function fetchData(url) {
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error('Failed to retrieve data');
+    }
+    const data = await response.json();
+
+    console.log('Data fetched successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    alert(
+      'Failed to retrieve data, make sure you are connected to the VPN / network'
+    );
+  }
 }
 
-function getAllRestaurants() {
+async function displayRestaurantInfoOnClick(id, marker) {
+  const url = 'https://10.120.32.94/restaurant/api/v1/restaurants/' + id;
+
+  const restaurant = await fetchData(url);
+
+  const name = document.createElement('h2');
+  name.textContent = `${restaurant.name}`;
+
+  const phone = document.createElement('p');
+  phone.textContent = `Phone: ${restaurant.phone}`;
+
+  const city = document.createElement('p');
+  city.textContent = `City: ${restaurant.city}`;
+
+  const address = document.createElement('p');
+  address.textContent = `Address: ${restaurant.address}`;
+
+  const postalCode = document.createElement('p');
+  postalCode.textContent = `Postal code: ${restaurant.postalCode}`;
+
+  const company = document.createElement('p');
+  company.textContent = `Company: ${restaurant.company}`;
+
+  const dailyButton = document.createElement('button');
+  dailyButton.classList.add('left-button');
+  dailyButton.innerHTML = `<i class="arrow left"></i>`;
+
+  dailyButton.addEventListener('click', function (event) {
+    event.stopPropagation();
+    displayDailyMenuOnClick(marker, id);
+  });
+
+  const content = document.createElement('div');
+
+  const div = document.createElement('div');
+  div.append(dailyButton, name, phone, city, address, postalCode, company);
+  content.appendChild(div);
+
+  marker.bindPopup(div).openPopup();
+}
+
+async function displayDailyMenuOnClick(marker, id) {
+  const menuUrl = `https://10.120.32.94/restaurant/api/v1/restaurants/weekly/${id}/en`;
+
+  const data = await fetchData(menuUrl);
+
+  const date = new Date();
+  const daysOfWeek = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
+
+  const currentDayOfWeek = daysOfWeek[date.getDay()];
+
+  const weeklyButton = document.createElement('button');
+  weeklyButton.classList.add('right-button');
+  weeklyButton.innerHTML = `<i class="arrow left"></i>`;
+
+  weeklyButton.addEventListener('click', function (event) {
+    event.stopPropagation();
+    displayWeeklyMenuOnClick(marker, id);
+  });
+
+  const popupContent = document.createElement('div');
+  const infoButton = document.createElement('button');
+  infoButton.classList.add('left-button');
+  infoButton.innerHTML = `<i class="arrow right"></i>`;
+  infoButton.addEventListener('click', function (event) {
+    console.log('click');
+    event.stopPropagation();
+    displayRestaurantInfoOnClick(id, marker);
+  });
+
+  const div = document.createElement('div');
+  div.classList.add('marker-popup');
+
+  div.appendChild(weeklyButton);
+  div.appendChild(infoButton);
+  popupContent.appendChild(div);
+
+  for (const {date, courses} of data.days) {
+    const dateArray = date.split(',');
+    if (dateArray[0] === currentDayOfWeek) {
+      const dayElement = document.createElement('h2');
+      dayElement.textContent = currentDayOfWeek.toString();
+      popupContent.appendChild(dayElement);
+      for (const {name, price} of courses) {
+        const nameElement = document.createElement('p');
+        nameElement.textContent = name;
+        const priceElement = document.createElement('p');
+        priceElement.innerHTML = `<b>${price}</b>`;
+        popupContent.appendChild(nameElement);
+        popupContent.appendChild(priceElement);
+      }
+      marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
+    }
+  }
+}
+
+async function displayWeeklyMenuOnClick(marker, id) {
+  const menuUrl = `https://10.120.32.94/restaurant/api/v1/restaurants/weekly/${id}/en`;
+
+  const data = await fetchData(menuUrl);
+
+  const content = document.createElement('div');
+
+  const fakeButton = document.createElement('button');
+  fakeButton.classList.add('left-button');
+
+  fakeButton.innerHTML = `<i class="arrow left"></i>`;
+
+  // Change button style so that it indicates that it is not clickable
+  fakeButton.style.pointerEvents = 'none';
+
+  const buttonDiv = document.createElement('div');
+  buttonDiv.classList.add('marker-popup');
+
+  const dailyButton = document.createElement('button');
+  dailyButton.innerHTML = `<i class="arrow right"></i>`;
+  dailyButton.classList.add('right-button');
+
+  dailyButton.addEventListener('click', (evt) => {
+    evt.stopPropagation();
+
+    displayDailyMenuOnClick(marker, id);
+  });
+
+  buttonDiv.appendChild(fakeButton);
+  buttonDiv.appendChild(dailyButton);
+  content.appendChild(buttonDiv);
+
+  for (const {date, courses} of data.days) {
+    const dateArray = date.split(',');
+    const headerElement = document.createElement('h2');
+    headerElement.textContent = dateArray[0];
+    content.appendChild(headerElement);
+
+    for (const {name, price} of courses) {
+      const nameElement = document.createElement('p');
+      nameElement.textContent = name;
+
+      const priceElement = document.createElement('p');
+      priceElement.innerHTML = `<b>${price}</b>`;
+
+      content.appendChild(nameElement);
+      content.appendChild(priceElement);
+    }
+  }
+  marker.bindPopup(content).openPopup();
+}
+
+async function getAllRestaurants() {
   fetch(allRestaurants)
     .then((response) => response.json())
     .then((data) => {
-      console.log(data[0]._id);
+      console.log(data);
 
-      for (let restaurant of data) {
+      for (const restaurant of data) {
         console.log(restaurant.address);
         let marker = L.marker([
           restaurant.location.coordinates[1],
           restaurant.location.coordinates[0],
         ]).addTo(map);
-        marker.bindPopup('');
+        marker.bindTooltip(restaurant.name);
+
+        marker.on('click', () => {
+          displayDailyMenuOnClick(marker, restaurant._id);
+        });
       }
     })
     .catch((error) => {
       console.error('Error:', error);
+      alert(
+        'Failed to retrieve data, make sure you are connected to the VPN / network'
+      );
     });
 }
-
-function displayWeeklyMenu(id) {
-  const menuUrl = `https://10.120.32.94/restaurant/api/v1/restaurants/weekly/${id}/en`;
-
-  fetch(menuUrl)
-    .then((response) => {
-      if (!response.ok) throw new Error('Failed to retrieve weekly menu');
-      return response.json();
-    })
-    .then((data) => {
-      console.log(data);
-      return data;
-    })
-    .catch((error) => {
-      console.error('Error fetching weekly menu:', error);
-    });
-}
-
-function displayDailyMenu(companyId) {
-  const menuUrl = `https://10.120.32.94/restaurant/api/v1/restaurants/daily/${companyId}/en`;
-
-  fetch(menuUrl)
-    .then((response) => {
-      if (!response.ok) throw new Error('Failed to retrieve daily menu');
-    })
-    .then((data) => {
-      console.log(data);
-    })
-    .catch((error) => {
-      console.error('Error fetching daily menu:', error);
-    });
-}
-
-const test = '6470d391cb12107db6fe24ef';
-const t = 12;
 
 getAllRestaurants();
-displayWeeklyMenu(test);
-displayDailyMenu(t);
 
 window.addEventListener('click', function (event) {
   if (event.target == loginModal) {
@@ -232,6 +347,8 @@ loginForm.addEventListener('submit', (evt) => {
   usernameInput.style.borderColor = 'none';
 
   login(username, password);
+
+  loginModal.style.display = 'none';
 });
 
 logoutButton.addEventListener('click', function () {
@@ -240,7 +357,7 @@ logoutButton.addEventListener('click', function () {
 });
 
 window.addEventListener('load', function () {
-  let isLoggedIn = localStorage.getItem('isLoggedIn');
+  const isLoggedIn = localStorage.getItem('isLoggedIn');
 
   if (isLoggedIn === 'true') {
     loginButton.style.display = 'none';
