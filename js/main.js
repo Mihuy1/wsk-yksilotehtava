@@ -66,6 +66,13 @@ async function displayRestaurantInfoOnClick(id, marker) {
   const company = document.createElement('p');
   company.textContent = `Company: ${restaurant.company}`;
 
+  const fakeButton = document.createElement('button');
+  fakeButton.classList.add('right-button');
+
+  fakeButton.innerHTML = `<i class="arrow right"></i>`;
+
+  fakeButton.style.pointerEvents = 'none';
+
   const dailyButton = document.createElement('button');
   dailyButton.classList.add('left-button');
   dailyButton.innerHTML = `<i class="arrow left"></i>`;
@@ -78,16 +85,22 @@ async function displayRestaurantInfoOnClick(id, marker) {
   const content = document.createElement('div');
 
   const div = document.createElement('div');
-  div.append(dailyButton, name, phone, city, address, postalCode, company);
+
+  const buttonDiv = document.createElement('div');
+  buttonDiv.classList.add('marker-popup');
+
+  buttonDiv.append(dailyButton, fakeButton);
+  div.append(name, phone, city, address, postalCode, company);
+  content.appendChild(buttonDiv);
   content.appendChild(div);
 
-  marker.bindPopup(div).openPopup();
+  marker.bindPopup(content).openPopup();
 }
 
 async function displayDailyMenuOnClick(marker, id) {
   const menuUrl = `https://10.120.32.94/restaurant/api/v1/restaurants/weekly/${id}/en`;
 
-  const foundDailyMenu = false;
+  let foundDailyMenu = false;
 
   const data = await fetchData(menuUrl);
 
@@ -171,7 +184,6 @@ async function displayWeeklyMenuOnClick(marker, id) {
 
   fakeButton.innerHTML = `<i class="arrow left"></i>`;
 
-  // Change button style so that it indicates that it is not clickable
   fakeButton.style.pointerEvents = 'none';
 
   const buttonDiv = document.createElement('div');
