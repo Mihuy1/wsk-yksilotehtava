@@ -87,6 +87,8 @@ async function displayRestaurantInfoOnClick(id, marker) {
 async function displayDailyMenuOnClick(marker, id) {
   const menuUrl = `https://10.120.32.94/restaurant/api/v1/restaurants/weekly/${id}/en`;
 
+  const foundDailyMenu = false;
+
   const data = await fetchData(menuUrl);
 
   const date = new Date();
@@ -134,6 +136,7 @@ async function displayDailyMenuOnClick(marker, id) {
       const dayElement = document.createElement('h2');
       dayElement.textContent = currentDayOfWeek.toString();
       popupContent.appendChild(dayElement);
+      foundDailyMenu = true;
       for (const {name, price} of courses) {
         const nameElement = document.createElement('p');
         nameElement.textContent = name;
@@ -144,6 +147,15 @@ async function displayDailyMenuOnClick(marker, id) {
       }
       marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
     }
+  }
+  if (!foundDailyMenu) {
+    const h2 = document.createElement('h2');
+    h2.textContent = 'No menu available for today';
+    div.appendChild(weeklyButton);
+    div.appendChild(infoButton);
+    popupContent.appendChild(div);
+    popupContent.appendChild(h2);
+    marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
   }
 }
 

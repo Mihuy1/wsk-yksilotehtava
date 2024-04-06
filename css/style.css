@@ -74,6 +74,29 @@ li a:hover {
   background-color: #191919;
 }
 
+.animate {
+  -webkit-animation: animatezoom 0.6s;
+  animation: animatezoom 0.6s;
+}
+
+@-webkit-keyframes animatezoom {
+  from {
+    -webkit-transform: scale(0);
+  }
+  to {
+    -webkit-transform: scale(1);
+  }
+}
+
+@keyframes animatezoom {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
 button {
   background: #eb5e28;
   color: #ffffff;
@@ -341,7 +364,6 @@ footer {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #555555;
 }
-
 .leaflet-layer,
 .leaflet-control-zoom-in,
 .leaflet-control-zoom-out,
