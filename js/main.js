@@ -33,7 +33,6 @@ async function fetchData(url) {
     }
     const data = await response.json();
 
-    console.log('Data fetched successfully:', data);
     return data;
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -227,10 +226,7 @@ async function getAllRestaurants() {
   fetch(allRestaurants)
     .then((response) => response.json())
     .then((data) => {
-      console.log(data);
-
       for (const restaurant of data) {
-        console.log(restaurant.address);
         let marker = L.marker([
           restaurant.location.coordinates[1],
           restaurant.location.coordinates[0],
@@ -275,12 +271,47 @@ registerButton.addEventListener('click', function () {
 });
 
 window.addEventListener('load', function () {
+  const distances = [];
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      function (position) {
+      async function (position) {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
-        map.setView([latitude, longitude], 13);
+
+        const data = await fetchData(allRestaurants);
+
+        for (const restaurant of data) {
+          const distance = cosineDistanceBetweenPoints(
+            latitude,
+            longitude,
+            restaurant.location.coordinates[1],
+            restaurant.location.coordinates[0]
+          );
+
+          distances.push({distance, restaurant});
+        }
+
+        distances.sort((a, b) => a.distance - b.distance);
+
+        const closestRestaurant = distances[0].restaurant;
+
+        console.log('Closest restaurant:', closestRestaurant);
+
+        console.log(
+          closestRestaurant.location.coordinates[1],
+          closestRestaurant.location.coordinates[0]
+        );
+
+        map.setView(
+          [
+            closestRestaurant.location.coordinates[1],
+            closestRestaurant.location.coordinates[0],
+          ],
+          17
+        );
+
+        /* map.setView([latitude, longitude], 13);*/
       },
       function (error) {
         console.log('Error getting current position:', error);
@@ -290,6 +321,14 @@ window.addEventListener('load', function () {
     console.log('Geolocation is not supported by this browser.');
   }
 });
+
+function showElement(element) {
+  element.style.display = 'block';
+}
+
+function hideElement(element) {
+  element.style.display = 'none';
+}
 
 function createUser(username, password) {
   if (localStorage.getItem(username)) {
@@ -308,15 +347,18 @@ function login(username, password) {
     localStorage.setItem('loggedInUser', username);
 
     showUsername();
-    profileButton.style.display = 'block';
-    logoutButton.style.display = 'block';
+    showElement(profileButton);
+    showElement(logoutButton);
 
-    loginButton.style.display = 'none';
-    registerButton.style.display = 'none';
-    loginModal.style.display = 'none';
+    hideElement(loginButton);
+    hideElement(registerButton);
+    hideElement(loginModal);
     profileButton.innerHTML = username;
+
+    loginModal.style.display = 'none';
+    return true;
   } else {
-    incorrectPassword.style.display = 'block';
+    showElement(incorrectPassword);
     passwordInput.style.borderColor = 'red';
     usernameInput.style.borderColor = 'red';
 
@@ -327,11 +369,12 @@ function login(username, password) {
 
 function logout() {
   localStorage.removeItem('loggedInUser');
-  profileButton.style.display = 'none';
-  logoutButton.style.display = 'none';
 
-  loginButton.style.display = 'block';
-  registerButton.style.display = 'block';
+  hideElement(profileButton);
+  hideElement(logoutButton);
+
+  showElement(loginButton);
+  showElement(registerButton);
 
   console.log('User logged out.');
 }
@@ -340,6 +383,8 @@ function showUsername() {
   const username = localStorage.getItem('username');
   if (username) {
     console.log('Logged in as:', username);
+    profileButton.textContent = username; // Set the button text to the username
+    showElement(profileButton); // Show the profile button
   } else {
     console.log('No user logged in.');
   }
@@ -371,8 +416,6 @@ loginForm.addEventListener('submit', (evt) => {
   usernameInput.style.borderColor = 'none';
 
   login(username, password);
-
-  loginModal.style.display = 'none';
 });
 
 logoutButton.addEventListener('click', function () {
@@ -384,18 +427,41 @@ window.addEventListener('load', function () {
   const isLoggedIn = localStorage.getItem('isLoggedIn');
 
   if (isLoggedIn === 'true') {
-    loginButton.style.display = 'none';
-    registerButton.style.display = 'none';
-    profileButton.style.display = 'block';
-    logoutButton.style.display = 'block';
+    hideElement(loginButton);
+    hideElement(registerButton);
+
+    showElement(profileButton);
+    showElement(logoutButton);
+
+    showUsername();
+
     profileButton.innerHTML = localStorage.getItem('loggedInUser');
 
     // Load the user's favoirte restaurant etc... here
   } else {
-    loginButton.style.display = 'block';
-    registerButton.style.display = 'block';
-    profileButton.style.display = 'none';
-    logoutButton.style.display = 'none';
+    showElement(loginButton);
+    showElement(registerButton);
+
+    hideElement(profileButton);
+    hideElement(logoutButton);
+
     profileButton.style.innerHTML = 'Profile';
   }
 });
+
+function cosineDistanceBetweenPoints(lat1, lon1, lat2, lon2) {
+  const R = 6371e3;
+  const p1 = (lat1 * Math.PI) / 180;
+  const p2 = (lat2 * Math.PI) / 180;
+  const deltaP = p2 - p1;
+  const deltaLon = lon2 - lon1;
+  const deltaLambda = (deltaLon * Math.PI) / 180;
+  const a =
+    Math.sin(deltaP / 2) * Math.sin(deltaP / 2) +
+    Math.cos(p1) *
+      Math.cos(p2) *
+      Math.sin(deltaLambda / 2) *
+      Math.sin(deltaLambda / 2);
+  const d = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * R;
+  return d;
+}
