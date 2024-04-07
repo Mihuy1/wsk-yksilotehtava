@@ -11,6 +11,7 @@ body {
 .container {
   display: flex;
   flex-direction: row;
+  background-color: #191919;
 }
 
 nav h1 {
@@ -129,17 +130,8 @@ select {
   border-radius: 0 10px 10px 0;
 }
 
-.sidepanel form input {
-  display: block;
-  margin: 0;
-  margin-bottom: 2rem;
-  padding: 0 0 0 1.5rem;
-  height: 2rem;
-  background: whitesmoke;
-  outline: none;
-  border: none;
-  border-radius: 1.625rem;
-  font-size: 1rem;
+.sidepanel form select {
+  width: 45%;
 }
 
 .sidepanel form button {
