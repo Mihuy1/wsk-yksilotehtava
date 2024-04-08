@@ -282,7 +282,7 @@ window.addEventListener('load', function () {
         const data = await fetchData(allRestaurants);
 
         for (const restaurant of data) {
-          const distance = cosineDistanceBetweenPoints(
+          const distance = vincentysDistance(
             latitude,
             longitude,
             restaurant.location.coordinates[1],
@@ -299,8 +299,8 @@ window.addEventListener('load', function () {
         console.log('Closest restaurant:', closestRestaurant);
 
         console.log(
-          closestRestaurant.location.coordinates[1],
-          closestRestaurant.location.coordinates[0]
+          closestRestaurant.location.coordinates[0],
+          closestRestaurant.location.coordinates[1]
         );
 
         map.setView(
@@ -310,8 +310,6 @@ window.addEventListener('load', function () {
           ],
           17
         );
-
-        /* map.setView([latitude, longitude], 13);*/
       },
       function (error) {
         console.log('Error getting current position:', error);
@@ -449,19 +447,73 @@ window.addEventListener('load', function () {
   }
 });
 
-function cosineDistanceBetweenPoints(lat1, lon1, lat2, lon2) {
-  const R = 6371e3;
-  const p1 = (lat1 * Math.PI) / 180;
-  const p2 = (lat2 * Math.PI) / 180;
-  const deltaP = p2 - p1;
-  const deltaLon = lon2 - lon1;
-  const deltaLambda = (deltaLon * Math.PI) / 180;
-  const a =
-    Math.sin(deltaP / 2) * Math.sin(deltaP / 2) +
-    Math.cos(p1) *
-      Math.cos(p2) *
-      Math.sin(deltaLambda / 2) *
-      Math.sin(deltaLambda / 2);
-  const d = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * R;
-  return d;
+function toRadians(degrees) {
+  return degrees * (Math.PI / 180);
+}
+
+function vincentysDistance(lat1, lon1, lat2, lon2) {
+  const a = 6378137;
+  const b = 6356752.314245;
+  const f = 1 / 298.257223563; // WGS-84 ellipsoid params
+  const L = toRadians(lon2 - lon1);
+  const U1 = Math.atan((1 - f) * Math.tan(toRadians(lat1)));
+  const U2 = Math.atan((1 - f) * Math.tan(toRadians(lat2)));
+  const sinU1 = Math.sin(U1);
+  const cosU1 = Math.cos(U1);
+  const sinU2 = Math.sin(U2);
+  const cosU2 = Math.cos(U2);
+
+  let lambda = L;
+  let lambdaP;
+  let iterLimit = 100;
+  let cosSqAlpha;
+  let sigma;
+  let cos2SigmaM;
+  let cosSigma;
+  let sinSigma;
+  do {
+    const sinLambda = Math.sin(lambda);
+    const cosLambda = Math.cos(lambda);
+    const sinSqSigma =
+      cosU2 * sinLambda * (cosU2 * sinLambda) +
+      (cosU1 * sinU2 - sinU1 * cosU2 * cosLambda) *
+        (cosU1 * sinU2 - sinU1 * cosU2 * cosLambda);
+    sinSigma = Math.sqrt(sinSqSigma);
+    if (sinSigma === 0) return 0; // co-incident points
+    cosSigma = sinU1 * sinU2 + cosU1 * cosU2 * cosLambda;
+    sigma = Math.atan2(sinSigma, cosSigma);
+    const sinAlpha = (cosU1 * cosU2 * sinLambda) / sinSigma;
+    cosSqAlpha = 1 - sinAlpha * sinAlpha;
+    cos2SigmaM = cosSigma - (2 * sinU1 * sinU2) / cosSqAlpha;
+    const C = (f / 16) * cosSqAlpha * (4 + f * (4 - 3 * cosSqAlpha));
+    lambdaP = lambda;
+    lambda =
+      L +
+      (1 - C) *
+        f *
+        sinAlpha *
+        (sigma +
+          C *
+            sinSigma *
+            (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM)));
+  } while (Math.abs(lambda - lambdaP) > 1e-12 && --iterLimit > 0);
+
+  if (iterLimit === 0) return NaN; // formula failed to converge
+
+  const uSq = (cosSqAlpha * (a * a - b * b)) / (b * b);
+  const A = 1 + (uSq / 16384) * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq)));
+  const B = (uSq / 1024) * (256 + uSq * (-128 + uSq * (74 - 47 * uSq)));
+  const deltaSigma =
+    B *
+    sinSigma *
+    (cos2SigmaM +
+      (B / 4) *
+        (cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
+          (B / 6) *
+            cos2SigmaM *
+            (-3 + 4 * sinSigma * sinSigma) *
+            (-3 + 4 * cos2SigmaM * cos2SigmaM)));
+  const s = b * A * (sigma - deltaSigma);
+
+  return s; // return distance in meters
 }
