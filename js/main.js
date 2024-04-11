@@ -12,6 +12,8 @@ let markers = [{lat: 60.1695, lon: 24.9354, city: 'Helsinki'}];
 
 const allRestaurants = 'https://10.120.32.94/restaurant/api/v1/restaurants/';
 
+const allRestaurantsArray = [];
+
 const loginModal = document.getElementById('login-modal-id');
 const registerModal = document.getElementById('register-modal-id');
 
@@ -541,24 +543,6 @@ function displayRestaurants(restaurants) {
   }
 }
 
-async function filterRestaurantsCity(city) {
-  const data = await fetchData(allRestaurants);
-
-  const filteredData = data.filter((restaurant) => restaurant.city === city);
-
-  displayRestaurants(filteredData);
-}
-
-async function filterRestaurantsCompany(company) {
-  const data = await fetchData(allRestaurants);
-
-  const filteredData = data.filter(
-    (restaurant) => restaurant.company === company
-  );
-
-  displayRestaurants(filteredData);
-}
-
 const citySelectElement = document.getElementById('city');
 const companySelectElement = document.getElementById('company');
 const filterButton = document.getElementById('filter-button');
@@ -578,18 +562,6 @@ function filterMap() {
   });
 }
 
-/* if (cityValue !== 'All') {
-    filterRestaurantsCity(cityValue);
-    console.log('filtered: ', cityValue);
-  } else {
-    getAllRestaurants();
-  }
-
-  if (companyValue !== 'All') {
-    filterRestaurantsCompany(companyValue);
-    console.log('filtered:', companyValue);
-  }*/
-
 function removeAllMarkers() {
   for (let i = 0; i < markers.length; i++) {
     map.removeLayer(markers[i]);
@@ -599,6 +571,54 @@ function removeAllMarkers() {
 }
 
 filterButton.addEventListener('click', (evt) => {
+  evt.preventDefault();
   console.log('Filter clicked!');
   filterMap();
+});
+
+function searchByName(arr, target) {
+  const lowerCaseTarget = target.toLowerCase();
+  return arr.filter((item) =>
+    item.name.toLowerCase().includes(lowerCaseTarget)
+  );
+}
+
+async function fillRestaurantsArray() {
+  if (allRestaurantsArray.length === 0) {
+    const data = await fetchData(allRestaurants);
+
+    allRestaurantsArray.push(...data);
+  }
+}
+
+fillRestaurantsArray();
+
+const searchBar = document.getElementById('search-bar'); // replace 'searchBar' with the actual id of your search bar
+
+const resultsContainer = document.getElementById('resultsContainer'); // replace 'resultsContainer' with the actual id of your results container
+
+searchBar.addEventListener('input', function (event) {
+  // clear previous results
+  resultsContainer.innerHTML = '';
+
+  const target = event.target.value;
+
+  // only perform the search if the search bar is not empty
+  if (target.trim() !== '') {
+    const results = searchByName(allRestaurantsArray, target);
+
+    if (results.length > 0) {
+      resultsContainer.style.display = 'block'; // show the results container
+
+      results.forEach((result) => {
+        const resultElement = document.createElement('div');
+        resultElement.textContent = result.name;
+        resultsContainer.appendChild(resultElement);
+      });
+    } else {
+      resultsContainer.style.display = 'none'; // hide the results container
+    }
+  } else {
+    resultsContainer.style.display = 'none'; // hide the results container
+  }
 });
