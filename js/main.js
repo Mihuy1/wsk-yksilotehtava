@@ -232,6 +232,7 @@ async function getAllRestaurants() {
           restaurant.location.coordinates[0],
         ]).addTo(map);
         marker.bindTooltip(restaurant.name);
+        markers.push(marker);
 
         marker.on('click', () => {
           displayDailyMenuOnClick(marker, restaurant._id);
@@ -517,3 +518,87 @@ function vincentysDistance(lat1, lon1, lat2, lon2) {
 
   return s; // return distance in meters
 }
+
+function displayRestaurants(restaurants) {
+  removeAllMarkers();
+
+  try {
+    for (const restaurant of restaurants) {
+      let marker = L.marker([
+        restaurant.location.coordinates[1],
+        restaurant.location.coordinates[0],
+      ]).addTo(map);
+      marker.bindTooltip(restaurant.name);
+
+      markers.push(marker);
+
+      marker.on('click', () => {
+        displayDailyMenuOnClick(marker, restaurant._id);
+      });
+    }
+  } catch (error) {
+    console.error('Failed to filter map:', error);
+  }
+}
+
+async function filterRestaurantsCity(city) {
+  const data = await fetchData(allRestaurants);
+
+  const filteredData = data.filter((restaurant) => restaurant.city === city);
+
+  displayRestaurants(filteredData);
+}
+
+async function filterRestaurantsCompany(company) {
+  const data = await fetchData(allRestaurants);
+
+  const filteredData = data.filter(
+    (restaurant) => restaurant.company === company
+  );
+
+  displayRestaurants(filteredData);
+}
+
+const citySelectElement = document.getElementById('city');
+const companySelectElement = document.getElementById('company');
+const filterButton = document.getElementById('filter-button');
+
+function filterMap() {
+  const cityValue = citySelectElement.value;
+  const companyValue = companySelectElement.value;
+
+  fetchData(allRestaurants).then((data) => {
+    const filteredData = data.filter(
+      (restaurant) =>
+        (cityValue === 'All' || restaurant.city === cityValue) &&
+        (companyValue === 'All' || restaurant.company === companyValue)
+    );
+    console.log('filtered data:', filteredData);
+    displayRestaurants(filteredData);
+  });
+}
+
+/* if (cityValue !== 'All') {
+    filterRestaurantsCity(cityValue);
+    console.log('filtered: ', cityValue);
+  } else {
+    getAllRestaurants();
+  }
+
+  if (companyValue !== 'All') {
+    filterRestaurantsCompany(companyValue);
+    console.log('filtered:', companyValue);
+  }*/
+
+function removeAllMarkers() {
+  for (let i = 0; i < markers.length; i++) {
+    map.removeLayer(markers[i]);
+  }
+
+  markers.length = 0;
+}
+
+filterButton.addEventListener('click', (evt) => {
+  console.log('Filter clicked!');
+  filterMap();
+});
