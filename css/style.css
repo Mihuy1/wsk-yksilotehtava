@@ -20,6 +20,19 @@ nav h1 {
   color: #ffffff;
 }
 
+.themed-button {
+  width: 100px; /* adjust as needed */
+  height: 50px; /* adjust as needed */
+  border: none;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px; /* adjust as needed */
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
 .search-wrapper {
   position: relative;
 }
@@ -113,14 +126,28 @@ li a:hover {
   }
 }
 
-button {
+.themed-button {
   background: #eb5e28;
+  color: #ffffff;
+
+  margin: 0 auto;
+  border: none;
+  outline: none;
+  height: 2rem;
+  font-size: 1rem;
+  border-radius: 1.625rem;
+  padding: 0 1.5rem 0 1.5rem;
   color: #ffffff;
 }
 
 button:hover {
   background-color: #252422;
   cursor: pointer;
+}
+
+.arrow-button {
+  background-color: #eb5e28;
+  color: #ffffff;
 }
 
 select {
@@ -149,7 +176,7 @@ select {
   width: 45%;
 }
 
-.sidepanel form button {
+/*.sidepanel form button {
   display: block;
   margin-top: 2rem;
   border: none;
@@ -158,7 +185,7 @@ select {
   font-size: 1rem;
   border-radius: 1.625rem;
   padding: 0 1.5rem 0 1.5rem;
-}
+}*/
 
 #map {
   flex: 1;
@@ -212,7 +239,7 @@ select {
   font-size: 1rem;
 }
 
-.login-modal-content button,
+/*.login-modal-content button,
 .register-modal-content button {
   margin: 0 auto;
   border: none;
@@ -222,7 +249,7 @@ select {
   border-radius: 1.625rem;
   padding: 0 1.5rem 0 1.5rem;
   color: #ffffff;
-}
+}*/
 
 #incorrect-password {
   color: red;
@@ -277,7 +304,7 @@ select {
   font-size: 1rem;
 }
 
-.profile-form button {
+/*.profile-form button {
   margin: 0 auto;
   border: none;
   outline: none;
@@ -285,7 +312,7 @@ select {
   font-size: 1rem;
   border-radius: 1.625rem;
   padding: 0 1.5rem 0 1.5rem;
-}
+}*/
 
 #login-username,
 #login-password,
@@ -306,18 +333,15 @@ select {
   align-items: center;
 }
 
-.left-button {
-  border-radius: 50%;
-  width: 25px;
-  height: 25px;
-  border: none;
-}
-
+.left-button,
 .right-button {
   border-radius: 50%;
   width: 25px;
   height: 25px;
   border: none;
+  font-size: 12px;
+  line-height: 25px;
+  text-align: center;
 }
 
 footer {
@@ -376,4 +400,8 @@ footer {
 .leaflet-control-zoom-out,
 .leaflet-control-attribution {
   filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+img.huechange {
+  filter: hue-rotate(-99deg);
 }

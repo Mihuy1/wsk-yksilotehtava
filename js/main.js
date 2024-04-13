@@ -69,6 +69,7 @@ async function displayRestaurantInfoOnClick(id, marker) {
 
   const fakeButton = document.createElement('button');
   fakeButton.classList.add('right-button');
+  fakeButton.classList.add('arrow-button');
 
   fakeButton.innerHTML = `<i class="arrow right"></i>`;
 
@@ -76,6 +77,7 @@ async function displayRestaurantInfoOnClick(id, marker) {
 
   const dailyButton = document.createElement('button');
   dailyButton.classList.add('left-button');
+  dailyButton.classList.add('arrow-button');
   dailyButton.innerHTML = `<i class="arrow left"></i>`;
 
   dailyButton.addEventListener('click', function (event) {
@@ -120,16 +122,47 @@ async function displayDailyMenuOnClick(marker, id) {
 
   const weeklyButton = document.createElement('button');
   weeklyButton.classList.add('right-button');
+  weeklyButton.classList.add('arrow-button');
   weeklyButton.innerHTML = `<i class="arrow left"></i>`;
 
   weeklyButton.addEventListener('click', function (event) {
     event.stopPropagation();
     displayWeeklyMenuOnClick(marker, id);
   });
+  const favoriteButton = document.createElement('button');
+  favoriteButton.classList.add('themed-button');
+  favoriteButton.classList.add('favorite-button');
+
+  const favoriteButtonTextNode = document.createTextNode('Favorite');
+
+  favoriteButton.appendChild(favoriteButtonTextNode);
+
+  let favorites = JSON.parse(localStorage.getItem('favoriteRestaurants')) || [];
+
+  if (favorites.includes(id)) {
+    favoriteButton.style.backgroundColor = 'green';
+    marker._icon.classList.add('huechange');
+  }
+
+  favoriteButton.addEventListener('click', (evt) => {
+    evt.stopPropagation();
+    console.log('Favorite clicked');
+    if (favorites.includes(id)) {
+      favorites = favorites.filter((favId) => favId !== id);
+      favoriteButton.style.backgroundColor = '#eb5e28';
+      marker._icon.classList.remove('huechange');
+    } else {
+      favorites.push(id);
+      favoriteButton.style.backgroundColor = 'green';
+      marker._icon.classList.add('huechange');
+    }
+    localStorage.setItem('favoriteRestaurants', JSON.stringify(favorites));
+  });
 
   const popupContent = document.createElement('div');
   const infoButton = document.createElement('button');
   infoButton.classList.add('left-button');
+  infoButton.classList.add('arrow-button');
   infoButton.innerHTML = `<i class="arrow right"></i>`;
   infoButton.addEventListener('click', function (event) {
     console.log('click');
@@ -159,6 +192,7 @@ async function displayDailyMenuOnClick(marker, id) {
         popupContent.appendChild(nameElement);
         popupContent.appendChild(priceElement);
       }
+      popupContent.appendChild(favoriteButton);
       marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
     }
   }
@@ -169,6 +203,7 @@ async function displayDailyMenuOnClick(marker, id) {
     div.appendChild(infoButton);
     popupContent.appendChild(div);
     popupContent.appendChild(h2);
+    popupContent.appendChild(favoriteButton);
     marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
   }
 }
@@ -182,6 +217,7 @@ async function displayWeeklyMenuOnClick(marker, id) {
 
   const fakeButton = document.createElement('button');
   fakeButton.classList.add('left-button');
+  fakeButton.classList.add('arrow-button');
 
   fakeButton.innerHTML = `<i class="arrow left"></i>`;
 
@@ -193,6 +229,7 @@ async function displayWeeklyMenuOnClick(marker, id) {
   const dailyButton = document.createElement('button');
   dailyButton.innerHTML = `<i class="arrow right"></i>`;
   dailyButton.classList.add('right-button');
+  dailyButton.classList.add('arrow-button');
 
   dailyButton.addEventListener('click', (evt) => {
     evt.stopPropagation();
