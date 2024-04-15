@@ -10,6 +10,9 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let markers = [{lat: 60.1695, lon: 24.9354, city: 'Helsinki'}];
 
+const favoriteRestaurants =
+  JSON.parse(localStorage.getItem('favoriteRestaurants')) || {};
+
 const allRestaurants = 'https://10.120.32.94/restaurant/api/v1/restaurants/';
 
 const allRestaurantsArray = [];
@@ -43,6 +46,14 @@ async function fetchData(url) {
     );
   }
 }
+
+async function displayRestaurantsOnStart() {
+  const data = await fetchData(allRestaurants);
+
+  displayRestaurants(data);
+}
+
+displayRestaurantsOnStart();
 
 async function displayRestaurantInfoOnClick(id, marker) {
   const url = 'https://10.120.32.94/restaurant/api/v1/restaurants/' + id;
@@ -137,27 +148,35 @@ async function displayDailyMenuOnClick(marker, id) {
 
   favoriteButton.appendChild(favoriteButtonTextNode);
 
-  let favorites = JSON.parse(localStorage.getItem('favoriteRestaurants')) || [];
-
-  if (favorites.includes(id)) {
-    favoriteButton.style.backgroundColor = 'green';
-    marker._icon.classList.add('huechange');
-  }
-
-  favoriteButton.addEventListener('click', (evt) => {
-    evt.stopPropagation();
-    console.log('Favorite clicked');
-    if (favorites.includes(id)) {
-      favorites = favorites.filter((favId) => favId !== id);
-      favoriteButton.style.backgroundColor = '#eb5e28';
-      marker._icon.classList.remove('huechange');
-    } else {
-      favorites.push(id);
-      favoriteButton.style.backgroundColor = 'green';
-      marker._icon.classList.add('huechange');
+  const loggedInUser = localStorage.getItem('loggedInUser');
+  if (loggedInUser) {
+    if (!favoriteRestaurants[loggedInUser]) {
+      favoriteRestaurants[loggedInUser] = [];
     }
-    localStorage.setItem('favoriteRestaurants', JSON.stringify(favorites));
-  });
+    if (favoriteRestaurants[loggedInUser].includes(id)) {
+      favoriteButton.style.backgroundColor = 'green';
+    }
+    favoriteButton.addEventListener('click', function () {
+      if (!favoriteRestaurants[loggedInUser].includes(id)) {
+        favoriteRestaurants[loggedInUser].push(id);
+        marker._icon.classList.add('huechange');
+        favoriteButton.style.backgroundColor = 'green';
+      } else {
+        if (favoriteRestaurants[loggedInUser].includes(id)) {
+          const index = favoriteRestaurants[loggedInUser].indexOf(id);
+          favoriteRestaurants[loggedInUser].splice(index, 1);
+          marker._icon.classList.remove('huechange');
+          favoriteButton.style.backgroundColor = '#eb5e28';
+        }
+      }
+      localStorage.setItem(
+        'favoriteRestaurants',
+        JSON.stringify(favoriteRestaurants)
+      );
+    });
+  } else {
+    console.error('You have to be loggedin to favorite a restaurant.');
+  }
 
   const popupContent = document.createElement('div');
   const infoButton = document.createElement('button');
@@ -205,6 +224,24 @@ async function displayDailyMenuOnClick(marker, id) {
     popupContent.appendChild(h2);
     popupContent.appendChild(favoriteButton);
     marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
+  }
+}
+
+async function displayFavoriteRestaurants() {
+  const loggedInUser = localStorage.getItem('loggedInUser');
+
+  if (loggedInUser) {
+    const data = await fetchData(allRestaurants);
+
+    for (const restaurant of data) {
+      if (favoriteRestaurants[loggedInUser].includes(restaurant._id)) {
+        for (const marker of markers) {
+          if (marker.restaurantId === restaurant._id) {
+            marker._icon.classList.add('huechange');
+          }
+        }
+      }
+    }
   }
 }
 
@@ -260,33 +297,6 @@ async function displayWeeklyMenuOnClick(marker, id) {
   }
   marker.bindPopup(content).openPopup();
 }
-
-async function getAllRestaurants() {
-  fetch(allRestaurants)
-    .then((response) => response.json())
-    .then((data) => {
-      for (const restaurant of data) {
-        let marker = L.marker([
-          restaurant.location.coordinates[1],
-          restaurant.location.coordinates[0],
-        ]).addTo(map);
-        marker.bindTooltip(restaurant.name);
-        markers.push(marker);
-
-        marker.on('click', () => {
-          displayDailyMenuOnClick(marker, restaurant._id);
-        });
-      }
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-      alert(
-        'Failed to retrieve data, make sure you are connected to the VPN / network'
-      );
-    });
-}
-
-getAllRestaurants();
 
 window.addEventListener('click', function (event) {
   if (event.target == loginModal) {
@@ -378,13 +388,13 @@ function createUser(username, password) {
   console.log('User created successfully!');
 }
 
-function login(username, password) {
+async function login(username, password) {
   const storedPassword = localStorage.getItem(username);
+
   if (storedPassword === password) {
     console.log('Login successful!');
     localStorage.setItem('loggedInUser', username);
 
-    showUsername();
     showElement(profileButton);
     showElement(logoutButton);
 
@@ -394,6 +404,21 @@ function login(username, password) {
     profileButton.innerHTML = username;
 
     loginModal.style.display = 'none';
+    if (!favoriteRestaurants[username]) {
+      favoriteRestaurants[username] = [];
+    } else {
+      const data = await fetchData(allRestaurants);
+      for (const restaurant of data) {
+        if (favoriteRestaurants[username].includes(restaurant._id)) {
+          console.log('found favorite restaurant:', restaurant);
+          for (const marker of markers) {
+            if (marker.restaurantId === restaurant._id) {
+              marker._icon.classList.add('huechange');
+            }
+          }
+        }
+      }
+    }
     return true;
   } else {
     showElement(incorrectPassword);
@@ -407,6 +432,7 @@ function login(username, password) {
 
 function logout() {
   localStorage.removeItem('loggedInUser');
+  removeAllMarkers();
 
   hideElement(profileButton);
   hideElement(logoutButton);
@@ -415,17 +441,7 @@ function logout() {
   showElement(registerButton);
 
   console.log('User logged out.');
-}
-
-function showUsername() {
-  const username = localStorage.getItem('username');
-  if (username) {
-    console.log('Logged in as:', username);
-    profileButton.textContent = username; // Set the button text to the username
-    showElement(profileButton); // Show the profile button
-  } else {
-    console.log('No user logged in.');
-  }
+  location.reload();
 }
 
 const registerForm = document.querySelector('.register-modal-content');
@@ -462,16 +478,17 @@ logoutButton.addEventListener('click', function () {
 });
 
 window.addEventListener('load', function () {
-  const isLoggedIn = localStorage.getItem('isLoggedIn');
+  const loggedInUser = localStorage.getItem('loggedInUser');
 
-  if (isLoggedIn === 'true') {
+  displayFavoriteRestaurants();
+
+  if (loggedInUser) {
+    console.log('User is logged in! (on load');
     hideElement(loginButton);
     hideElement(registerButton);
 
     showElement(profileButton);
     showElement(logoutButton);
-
-    showUsername();
 
     profileButton.innerHTML = localStorage.getItem('loggedInUser');
 
@@ -570,6 +587,8 @@ function displayRestaurants(restaurants) {
       marker.bindTooltip(restaurant.name);
 
       markers.push(marker);
+
+      marker.restaurantId = restaurant._id;
 
       marker.on('click', () => {
         displayDailyMenuOnClick(marker, restaurant._id);
