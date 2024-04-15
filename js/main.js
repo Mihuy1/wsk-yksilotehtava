@@ -29,6 +29,29 @@ const usernameInput = document.querySelector('#login-username');
 const incorrectPassword = document.querySelector('#incorrect-password');
 incorrectPassword.style.paddingBottom = '1rem';
 
+function createButton(classes, innerHTML, pointerEvents = 'auto') {
+  const button = document.createElement('button');
+  classes.forEach((className) => button.classList.add(className));
+  button.innerHTML = innerHTML;
+  button.style.pointerEvents = pointerEvents;
+  return button;
+}
+
+function createTextElement(type, textContent) {
+  const element = document.createElement(type);
+  element.textContent = textContent;
+  return element;
+}
+
+function createPopupContent() {
+  return document.createElement('div');
+}
+
+function createAndAppendChildren(parent, children) {
+  children.forEach((child) => parent.appendChild(child));
+  return parent;
+}
+
 async function fetchData(url) {
   try {
     const response = await fetch(url);
@@ -60,53 +83,50 @@ async function displayRestaurantInfoOnClick(id, marker) {
 
   const restaurant = await fetchData(url);
 
-  const name = document.createElement('h2');
-  name.textContent = `${restaurant.name}`;
+  const name = createTextElement('h2', `${restaurant.name}`);
+  const phone = createTextElement('p', `Phone: ${restaurant.phone}`);
+  const city = createTextElement('p', `City: ${restaurant.city}`);
+  const address = createTextElement('p', `Address: ${restaurant.address}`);
+  const postalCode = createTextElement(
+    'p',
+    `Postal code: ${restaurant.postalCode}`
+  );
+  const company = createTextElement('p', `Company: ${restaurant.company}`);
 
-  const phone = document.createElement('p');
-  phone.textContent = `Phone: ${restaurant.phone}`;
-
-  const city = document.createElement('p');
-  city.textContent = `City: ${restaurant.city}`;
-
-  const address = document.createElement('p');
-  address.textContent = `Address: ${restaurant.address}`;
-
-  const postalCode = document.createElement('p');
-  postalCode.textContent = `Postal code: ${restaurant.postalCode}`;
-
-  const company = document.createElement('p');
-  company.textContent = `Company: ${restaurant.company}`;
-
-  const fakeButton = document.createElement('button');
-  fakeButton.classList.add('right-button');
-  fakeButton.classList.add('arrow-button');
-
-  fakeButton.innerHTML = `<i class="arrow right"></i>`;
-
-  fakeButton.style.pointerEvents = 'none';
-
-  const dailyButton = document.createElement('button');
-  dailyButton.classList.add('left-button');
-  dailyButton.classList.add('arrow-button');
-  dailyButton.innerHTML = `<i class="arrow left"></i>`;
+  const fakeButton = createButton(
+    ['right-button', 'arrow-button'],
+    '<i class="arrow right"></i>',
+    'none'
+  );
+  const dailyButton = createButton(
+    ['left-button', 'arrow-button'],
+    '<i class="arrow left"></i>'
+  );
+  dailyButton.addEventListener('click', function (event) {
+    event.stopPropagation();
+    displayDailyMenuOnClick(marker, id);
+  });
 
   dailyButton.addEventListener('click', function (event) {
     event.stopPropagation();
     displayDailyMenuOnClick(marker, id);
   });
 
-  const content = document.createElement('div');
-
-  const div = document.createElement('div');
-
-  const buttonDiv = document.createElement('div');
+  const content = createPopupContent();
+  const div = createPopupContent();
+  const buttonDiv = createPopupContent();
   buttonDiv.classList.add('marker-popup');
 
-  buttonDiv.append(dailyButton, fakeButton);
-  div.append(name, phone, city, address, postalCode, company);
-  content.appendChild(buttonDiv);
-  content.appendChild(div);
+  createAndAppendChildren(buttonDiv, [dailyButton, fakeButton]);
+  createAndAppendChildren(div, [
+    name,
+    phone,
+    city,
+    address,
+    postalCode,
+    company,
+  ]);
+  createAndAppendChildren(content, [buttonDiv, div]);
 
   marker.bindPopup(content).openPopup();
 }
@@ -131,22 +151,19 @@ async function displayDailyMenuOnClick(marker, id) {
 
   const currentDayOfWeek = daysOfWeek[date.getDay()];
 
-  const weeklyButton = document.createElement('button');
-  weeklyButton.classList.add('right-button');
-  weeklyButton.classList.add('arrow-button');
-  weeklyButton.innerHTML = `<i class="arrow left"></i>`;
+  const weeklyButton = createButton(
+    ['right-button', 'arrow-button'],
+    '<i class="arrow left"></i>'
+  );
 
   weeklyButton.addEventListener('click', function (event) {
     event.stopPropagation();
     displayWeeklyMenuOnClick(marker, id);
   });
-  const favoriteButton = document.createElement('button');
-  favoriteButton.classList.add('themed-button');
-  favoriteButton.classList.add('favorite-button');
-
-  const favoriteButtonTextNode = document.createTextNode('Favorite');
-
-  favoriteButton.appendChild(favoriteButtonTextNode);
+  const favoriteButton = createButton(
+    ['favorite-button', 'themed-button'],
+    'Favorite'
+  );
 
   const loggedInUser = localStorage.getItem('loggedInUser');
   if (loggedInUser) {
@@ -178,23 +195,23 @@ async function displayDailyMenuOnClick(marker, id) {
     console.error('You have to be loggedin to favorite a restaurant.');
   }
 
-  const popupContent = document.createElement('div');
-  const infoButton = document.createElement('button');
-  infoButton.classList.add('left-button');
-  infoButton.classList.add('arrow-button');
-  infoButton.innerHTML = `<i class="arrow right"></i>`;
+  const popupContent = createPopupContent();
+  const infoButton = createButton(
+    ['right-button', 'arrow-button'],
+    '<i class="arrow right"></i>'
+  );
+
   infoButton.addEventListener('click', function (event) {
     console.log('click');
     event.stopPropagation();
     displayRestaurantInfoOnClick(id, marker);
   });
 
-  const div = document.createElement('div');
+  const div = createPopupContent();
   div.classList.add('marker-popup');
 
-  div.appendChild(weeklyButton);
-  div.appendChild(infoButton);
-  popupContent.appendChild(div);
+  createAndAppendChildren(div, [weeklyButton, infoButton]);
+  createAndAppendChildren(popupContent, [div]);
 
   for (const {date, courses} of data.days) {
     const dateArray = date.split(',');
@@ -208,8 +225,7 @@ async function displayDailyMenuOnClick(marker, id) {
         nameElement.textContent = name;
         const priceElement = document.createElement('p');
         priceElement.innerHTML = `<b>${price}</b>`;
-        popupContent.appendChild(nameElement);
-        popupContent.appendChild(priceElement);
+        createAndAppendChildren(popupContent, [nameElement, priceElement]);
       }
       popupContent.appendChild(favoriteButton);
       marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
@@ -220,9 +236,10 @@ async function displayDailyMenuOnClick(marker, id) {
     h2.textContent = 'No menu available for today';
     div.appendChild(weeklyButton);
     div.appendChild(infoButton);
-    popupContent.appendChild(div);
-    popupContent.appendChild(h2);
-    popupContent.appendChild(favoriteButton);
+    createAndAppendChildren(div, [weeklyButton, infoButton]);
+
+    createAndAppendChildren(popupContent, [div, h2, favoriteButton]);
+
     marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
   }
 }
