@@ -65,7 +65,7 @@ async function fetchData(url) {
   } catch (error) {
     console.error('Error fetching data:', error);
     alert(
-      'Failed to retrieve data, make sure you are connected to the VPN / network'
+      'Failed to retrieve data, make sure you are connected to the VPN / school network'
     );
   }
 }
