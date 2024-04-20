@@ -26,7 +26,17 @@ const logoutButton = document.getElementById('logout-button');
 const passwordInput = document.querySelector('#login-password');
 const usernameInput = document.querySelector('#login-username');
 
+const registerPasswordInput = document.querySelector('#register-password');
+const registerUsernameInput = document.querySelector('#register-username');
+
 const incorrectPassword = document.querySelector('#incorrect-password');
+const registerIncorrectPassword = document.querySelector(
+  '#register-incorrect-password'
+);
+
+registerIncorrectPassword.style.color = 'red';
+incorrectPassword.style.color = 'red';
+
 incorrectPassword.style.paddingBottom = '1rem';
 
 function createButton(classes, innerHTML, pointerEvents = 'auto') {
@@ -395,85 +405,129 @@ function hideElement(element) {
   element.style.display = 'none';
 }
 
-function createUser(username, password) {
-  if (localStorage.getItem(username)) {
-    alert('Username already exists!');
+const register = async (username, email, password) => {
+  if (password.length < 5) {
+    registerIncorrectPassword.innerHTML = 'Password too short!';
+
+    showElement(registerIncorrectPassword);
     return;
   }
 
-  localStorage.setItem(username, password);
-  console.log('User created successfully!');
-}
+  try {
+    const response = await fetch(
+      'https://10.120.32.94/restaurant/api/v1/users',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+        }),
+      }
+    );
 
-async function login(username, password) {
-  const storedPassword = localStorage.getItem(username);
+    if (!response.ok) {
+      const errorData = await response.json();
+      if (errorData.message === 'Username or email already exists') {
+        registerIncorrectPassword.textContent =
+          'Username or email already exists';
+      } else {
+        registerIncorrectPassword.textContent = 'Something went wrong';
+      }
+      return false;
+    }
 
-  if (storedPassword === password) {
-    console.log('Login successful!');
-    localStorage.setItem('loggedInUser', username);
-
+    const data = await response.json();
+    console.log('Register succesfull!', data);
     showElement(profileButton);
     showElement(logoutButton);
 
     hideElement(loginButton);
     hideElement(registerButton);
-    hideElement(loginModal);
+    hideElement(registerModal);
+
     profileButton.innerHTML = username;
-
-    loginModal.style.display = 'none';
-    if (!favoriteRestaurants[username]) {
-      favoriteRestaurants[username] = [];
-    } else {
-      const data = await fetchData(allRestaurants);
-      for (const restaurant of data) {
-        if (favoriteRestaurants[username].includes(restaurant._id)) {
-          console.log('found favorite restaurant:', restaurant);
-          for (const marker of markers) {
-            if (marker.restaurantId === restaurant._id) {
-              marker._icon.classList.add('huechange');
-            }
-          }
-        }
-      }
-    }
-    return true;
-  } else {
-    showElement(incorrectPassword);
-    passwordInput.style.borderColor = 'red';
-    usernameInput.style.borderColor = 'red';
-
-    console.error('Login failed!');
+  } catch (error) {
+    console.error('Register failed:', error);
     return false;
   }
-}
+};
 
-function logout() {
-  localStorage.removeItem('loggedInUser');
-  removeAllMarkers();
+const login = async (username, password) => {
+  try {
+    const response = await fetch(
+      'https://10.120.32.94/restaurant/api/v1/auth/login',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      }
+    );
 
-  hideElement(profileButton);
-  hideElement(logoutButton);
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Login succesfull!', data);
+      showElement(profileButton);
+      showElement(logoutButton);
 
-  showElement(loginButton);
-  showElement(registerButton);
+      hideElement(loginButton);
+      hideElement(registerButton);
+      hideElement(loginModal);
+      profileButton.innerHTML = username;
 
-  console.log('User logged out.');
-  location.reload();
-}
+      loginModal.style.display = 'none';
+      localStorage.setItem('token', data.token); // store token in local storage
+    } else {
+      const errorData = await response.json();
+
+      if (errorData.message === 'Incorrect username/password') {
+        showElement(incorrectPassword);
+        passwordInput.style.borderColor = 'red';
+        usernameInput.style.borderColor = 'red';
+
+        incorrectPassword.textContent = 'Incorrect username/password';
+        showElement(incorrectPassword);
+
+        console.error('Login failed!');
+      }
+    }
+  } catch (error) {
+    console.error('Login failed:', error);
+  }
+};
+
+const logout = () => {
+  const token = localStorage.getItem('token');
+
+  if (token) {
+    localStorage.removeItem('token');
+    hideElement(profileButton);
+    hideElement(logoutButton);
+
+    showElement(loginButton);
+    showElement(registerButton);
+  }
+};
 
 const registerForm = document.querySelector('.register-modal-content');
 const loginForm = document.querySelector('.login-modal-content');
 
-registerForm.addEventListener('submit', (evt) => {
-  evt.preventDefault();
+registerForm.addEventListener('submit', function (event) {
+  event.preventDefault();
 
+  const email = document.querySelector('#register-email').value;
   const username = document.querySelector('#register-username').value;
   const password = document.querySelector('#register-password').value;
 
-  createUser(username, password);
-
-  // close modal
-  registerModal.style.display = 'none';
+  register(username, email, password);
 });
 
 loginForm.addEventListener('submit', (evt) => {
@@ -494,32 +548,35 @@ logoutButton.addEventListener('click', function () {
   console.log('User logged out.');
 });
 
-window.addEventListener('load', function () {
-  const loggedInUser = localStorage.getItem('loggedInUser');
+window.onload = async () => {
+  const token = localStorage.getItem('token');
 
-  displayFavoriteRestaurants();
+  if (token) {
+    try {
+      const response = await this.fetch(
+        'https://10.120.32.94/restaurant/api/v1/users/token',
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        console.log('User data:', data);
+        profileButton.innerHTML = data.username;
+        showElement(profileButton);
+        showElement(logoutButton);
 
-  if (loggedInUser) {
-    console.log('User is logged in! (on load');
-    hideElement(loginButton);
-    hideElement(registerButton);
-
-    showElement(profileButton);
-    showElement(logoutButton);
-
-    profileButton.innerHTML = localStorage.getItem('loggedInUser');
-
-    // Load the user's favoirte restaurant etc... here
-  } else {
-    showElement(loginButton);
-    showElement(registerButton);
-
-    hideElement(profileButton);
-    hideElement(logoutButton);
-
-    profileButton.style.innerHTML = 'Profile';
+        hideElement(loginButton);
+        hideElement(registerButton);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
   }
-});
+};
 
 function toRadians(degrees) {
   return degrees * (Math.PI / 180);

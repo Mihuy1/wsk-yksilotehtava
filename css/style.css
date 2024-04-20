@@ -229,7 +229,7 @@ select {
 .login-modal-content input,
 .register-modal-content input {
   display: block;
-  margin: 0 auto;
+  margin: 1rem;
   padding: 0 0 0 1.5rem;
   height: 2rem;
   background: #dddddd;
@@ -238,18 +238,6 @@ select {
   border-radius: 1.625rem;
   font-size: 1rem;
 }
-
-/*.login-modal-content button,
-.register-modal-content button {
-  margin: 0 auto;
-  border: none;
-  outline: none;
-  height: 2rem;
-  font-size: 1rem;
-  border-radius: 1.625rem;
-  padding: 0 1.5rem 0 1.5rem;
-  color: #ffffff;
-}*/
 
 #incorrect-password {
   color: red;

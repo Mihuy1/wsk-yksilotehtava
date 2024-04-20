@@ -110,6 +110,15 @@
 
       <div class="register-modal" id="register-modal-id">
         <form class="register-modal-content animate">
+          <label for="register-email"><b>Email</b></label>
+          <input
+            type="email"
+            name="register-email"
+            id="register-email"
+            placeholder="Enter Email"
+            required
+          />
+
           <label for="register-username"><b>Username</b></label>
           <input
             type="text"
@@ -127,6 +136,8 @@
             placeholder="Enter Password"
             required
           />
+
+          <p id="register-incorrect-password"></p>
 
           <button type="submit" class="themed-button">Register</button>
         </form>
