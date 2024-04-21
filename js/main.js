@@ -10,9 +10,6 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let markers = [{lat: 60.1695, lon: 24.9354, city: 'Helsinki'}];
 
-const favoriteRestaurants =
-  JSON.parse(localStorage.getItem('favoriteRestaurants')) || {};
-
 const allRestaurants = 'https://10.120.32.94/restaurant/api/v1/restaurants/';
 
 const allRestaurantsArray = [];
@@ -26,8 +23,8 @@ const logoutButton = document.getElementById('logout-button');
 const passwordInput = document.querySelector('#login-password');
 const usernameInput = document.querySelector('#login-username');
 
-const registerPasswordInput = document.querySelector('#register-password');
-const registerUsernameInput = document.querySelector('#register-username');
+const favoriteRestaurants =
+  JSON.parse(localStorage.getItem('favoriteRestaurants')) || {};
 
 const incorrectPassword = document.querySelector('#incorrect-password');
 const registerIncorrectPassword = document.querySelector(
@@ -177,6 +174,8 @@ async function displayDailyMenuOnClick(marker, id) {
 
   const loggedInUser = localStorage.getItem('loggedInUser');
   if (loggedInUser) {
+    let favoriteRestaurants =
+      JSON.parse(localStorage.getItem('favoriteRestaurants')) || {};
     if (!favoriteRestaurants[loggedInUser]) {
       favoriteRestaurants[loggedInUser] = [];
     }
@@ -189,8 +188,8 @@ async function displayDailyMenuOnClick(marker, id) {
         marker._icon.classList.add('huechange');
         favoriteButton.style.backgroundColor = 'green';
       } else {
-        if (favoriteRestaurants[loggedInUser].includes(id)) {
-          const index = favoriteRestaurants[loggedInUser].indexOf(id);
+        const index = favoriteRestaurants[loggedInUser].indexOf(id);
+        if (index !== -1) {
           favoriteRestaurants[loggedInUser].splice(index, 1);
           marker._icon.classList.remove('huechange');
           favoriteButton.style.backgroundColor = '#eb5e28';
@@ -202,7 +201,7 @@ async function displayDailyMenuOnClick(marker, id) {
       );
     });
   } else {
-    console.error('You have to be loggedin to favorite a restaurant.');
+    console.error('You have to be logged in to favorite a restaurant.');
   }
 
   const popupContent = createPopupContent();
@@ -251,24 +250,6 @@ async function displayDailyMenuOnClick(marker, id) {
     createAndAppendChildren(popupContent, [div, h2, favoriteButton]);
 
     marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
-  }
-}
-
-async function displayFavoriteRestaurants() {
-  const loggedInUser = localStorage.getItem('loggedInUser');
-
-  if (loggedInUser) {
-    const data = await fetchData(allRestaurants);
-
-    for (const restaurant of data) {
-      if (favoriteRestaurants[loggedInUser].includes(restaurant._id)) {
-        for (const marker of markers) {
-          if (marker.restaurantId === restaurant._id) {
-            marker._icon.classList.add('huechange');
-          }
-        }
-      }
-    }
   }
 }
 
@@ -336,15 +317,13 @@ window.addEventListener('click', function (event) {
 const loginButton = document.getElementById('login-button');
 
 loginButton.addEventListener('click', function () {
-  console.log('click');
-  loginModal.style.display = 'block';
+  showElement(loginModal);
 });
 
 const registerButton = document.getElementById('register-button');
 
 registerButton.addEventListener('click', function () {
-  console.log('click');
-  registerModal.style.display = 'block';
+  showElement(registerModal);
 });
 
 window.addEventListener('load', function () {
@@ -397,6 +376,32 @@ window.addEventListener('load', function () {
   }
 });
 
+const favoriteRestaurant = async (userId, restaurantId, userToken) => {
+  try {
+    const response = await fetch(
+      `https://10.120.32.94/restaurant/api/v1/users`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+        body: JSON.stringify({
+          _id: userId,
+          favouriteRestaurant: restaurantId,
+        }),
+      }
+    );
+    if (response.status === 200) {
+      alert('Restaurant favorited successfully');
+      console.log(response.status);
+      const data = await response.json();
+      console.log(data);
+    }
+  } catch (error) {
+    console.error('Failed to favorite restaurant:', error);
+  }
+};
+
 function showElement(element) {
   element.style.display = 'block';
 }
@@ -428,31 +433,23 @@ const register = async (username, email, password) => {
         }),
       }
     );
-
-    if (!response.ok) {
+    if (response.status === 200) {
+      const data = await response.json();
+      console.log(data);
+      alert('User registered successfully');
+    } else if (!response.ok) {
       const errorData = await response.json();
       if (errorData.message === 'Username or email already exists') {
         registerIncorrectPassword.textContent =
           'Username or email already exists';
+        return;
       } else {
         registerIncorrectPassword.textContent = 'Something went wrong';
+        return;
       }
-      return false;
     }
-
-    const data = await response.json();
-    console.log('Register succesfull!', data);
-    showElement(profileButton);
-    showElement(logoutButton);
-
-    hideElement(loginButton);
-    hideElement(registerButton);
-    hideElement(registerModal);
-
-    profileButton.innerHTML = username;
   } catch (error) {
     console.error('Register failed:', error);
-    return false;
   }
 };
 
@@ -474,7 +471,7 @@ const login = async (username, password) => {
 
     if (response.ok) {
       const data = await response.json();
-      console.log('Login succesfull!', data);
+      console.log('Login successful:', data);
       showElement(profileButton);
       showElement(logoutButton);
 
@@ -484,7 +481,25 @@ const login = async (username, password) => {
       profileButton.innerHTML = username;
 
       loginModal.style.display = 'none';
-      localStorage.setItem('token', data.token); // store token in local storage
+      localStorage.setItem('token', data.token);
+
+      localStorage.setItem('loggedInUser', username);
+
+      if (!favoriteRestaurants[username]) {
+        favoriteRestaurants[username] = [];
+      } else {
+        const restaurantData = await fetchData(allRestaurants);
+
+        for (const restaurant of restaurantData) {
+          if (favoriteRestaurants[username].includes(restaurant._id)) {
+            for (const marker of markers) {
+              if (marker.restaurantId === restaurant._id) {
+                marker._icon.classList.add('huechange');
+              }
+            }
+          }
+        }
+      }
     } else {
       const errorData = await response.json();
 
@@ -514,6 +529,10 @@ const logout = () => {
 
     showElement(loginButton);
     showElement(registerButton);
+
+    localStorage.removeItem('loggedInUser');
+    removeAllMarkers();
+    window.location.reload();
   }
 };
 
@@ -553,7 +572,7 @@ window.onload = async () => {
 
   if (token) {
     try {
-      const response = await this.fetch(
+      const response = await fetch(
         'https://10.120.32.94/restaurant/api/v1/users/token',
         {
           method: 'GET',
@@ -564,13 +583,31 @@ window.onload = async () => {
       );
       if (response.ok) {
         const data = await response.json();
-        console.log('User data:', data);
         profileButton.innerHTML = data.username;
         showElement(profileButton);
         showElement(logoutButton);
 
         hideElement(loginButton);
         hideElement(registerButton);
+        console.log('User is logged in', data);
+        localStorage.setItem('_id', data._id);
+        localStorage.setItem('loggedInUser', data.username);
+
+        if (!favoriteRestaurants[data.username]) {
+          favoriteRestaurants[data.username] = [];
+        } else {
+          const restaurantData = await fetchData(allRestaurants);
+
+          for (const restaurant of restaurantData) {
+            if (favoriteRestaurants[data.username].includes(restaurant._id)) {
+              for (const marker of markers) {
+                if (marker.restaurantId === restaurant._id) {
+                  marker._icon.classList.add('huechange');
+                }
+              }
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);

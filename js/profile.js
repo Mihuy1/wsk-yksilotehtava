@@ -25,9 +25,11 @@ const setFieldData = async () => {
 
     if (response.status === 200) {
       const data = await response.json();
+      console.log(data);
       email.value = data.email;
       username.value = data.username;
-      profilePicture.src = `https://10.120.32.94/restaurant/uploads/${data.avatar}`;
+      if (data.avatar)
+        profilePicture.src = `https://10.120.32.94/restaurant/uploads/${data.avatar}`;
     } else if (response.status === 403) {
       console.error('Forbidden');
       window.location.href = 'main.html';
@@ -36,17 +38,6 @@ const setFieldData = async () => {
     console.error(error);
   }
 };
-
-function setProfileButtonToName() {
-  const loggedInUser = localStorage.getItem('loggedInUser');
-  if (loggedInUser) {
-    profileButton.innerHTML = loggedInUser;
-  }
-}
-
-function resetProfileButton() {
-  profileButton.innerHTML = 'Profile';
-}
 
 profilePicture.addEventListener('click', function () {
   fileInput.click();
@@ -57,8 +48,6 @@ fileInput.addEventListener('change', async function () {
     const formData = new FormData();
     formData.append('avatar', this.files[0]);
 
-    // e.target.result is the base64 encoded image
-    // send this to the server
     try {
       const response = await fetch(
         'https://10.120.32.94/restaurant/api/v1/users/avatar',
@@ -132,6 +121,7 @@ form.addEventListener('submit', async function (event) {
       alert('Something went wrong');
     }
   } catch (error) {
+    alert('Something went wrong');
     console.error(error);
   }
 });
