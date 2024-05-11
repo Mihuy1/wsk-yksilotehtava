@@ -108,6 +108,11 @@ li a:hover {
   animation: animatezoom 0.6s;
 }
 
+.result-div:hover {
+  background-color: gray;
+  cursor: pointer;
+}
+
 @-webkit-keyframes animatezoom {
   from {
     -webkit-transform: scale(0);

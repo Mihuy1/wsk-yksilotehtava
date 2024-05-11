@@ -95,6 +95,7 @@ form.addEventListener('submit', async function (event) {
         email: updatedEmail,
         username: updatedUsername,
         password: updatedPassword,
+        favoriteRestaurant: '6470d38ecb12107db6fe24c1',
       };
     }
   }

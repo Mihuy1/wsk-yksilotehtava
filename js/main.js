@@ -138,7 +138,7 @@ async function displayRestaurantInfoOnClick(id, marker) {
   marker.bindPopup(content).openPopup();
 }
 
-async function displayDailyMenuOnClick(marker, id) {
+/*async function displayDailyMenuOnClick(marker, id) {
   const menuUrl = `https://10.120.32.94/restaurant/api/v1/restaurants/weekly/${id}/en`;
 
   let foundDailyMenu = false;
@@ -250,6 +250,161 @@ async function displayDailyMenuOnClick(marker, id) {
     createAndAppendChildren(popupContent, [div, h2, favoriteButton]);
 
     marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
+  }
+}*/
+
+async function displayDailyMenuOnClick(marker, id) {
+  const menuUrl = `https://10.120.32.94/restaurant/api/v1/restaurants/weekly/${id}/en`;
+
+  let foundDailyMenu = false;
+
+  const data = await fetchData(menuUrl);
+
+  const date = new Date();
+  const daysOfWeek = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
+
+  const currentDayOfWeek = daysOfWeek[date.getDay()];
+
+  const weeklyButton = createButton(
+    ['right-button', 'arrow-button'],
+    '<i class="arrow left"></i>'
+  );
+
+  weeklyButton.addEventListener('click', function (event) {
+    event.stopPropagation();
+    displayWeeklyMenuOnClick(marker, id);
+  });
+  const favoriteButton = createButton(
+    ['favorite-button', 'themed-button'],
+    'Favorite'
+  );
+
+  const loggedInUser = localStorage.getItem('loggedInUser');
+  if (loggedInUser) {
+    let favoriteRestaurants =
+      JSON.parse(localStorage.getItem('favoriteRestaurants')) || {};
+    if (!favoriteRestaurants[loggedInUser]) {
+      favoriteRestaurants[loggedInUser] = [];
+    }
+    if (favoriteRestaurants[loggedInUser].includes(id)) {
+      favoriteButton.style.backgroundColor = 'green';
+    }
+    favoriteButton.addEventListener('click', async function () {
+      if (!favoriteRestaurants[loggedInUser].includes(id)) {
+        // Add the restaurant to favorites
+        favoriteRestaurants[loggedInUser].push(id);
+        marker._icon.classList.add('huechange');
+        favoriteButton.style.backgroundColor = 'green';
+        // Update the favorite restaurants in localStorage
+        localStorage.setItem(
+          'favoriteRestaurants',
+          JSON.stringify(favoriteRestaurants)
+        );
+        // Update the favorite restaurant in the user's profile (optional)
+        await updateFavoriteRestaurant(loggedInUser, id);
+      } else {
+        // Remove the restaurant from favorites
+        const index = favoriteRestaurants[loggedInUser].indexOf(id);
+        if (index !== -1) {
+          favoriteRestaurants[loggedInUser].splice(index, 1);
+          marker._icon.classList.remove('huechange');
+          favoriteButton.style.backgroundColor = '#eb5e28';
+          // Update the favorite restaurants in localStorage
+          localStorage.setItem(
+            'favoriteRestaurants',
+            JSON.stringify(favoriteRestaurants)
+          );
+          // Update the favorite restaurant in the user's profile (optional)
+          await updateFavoriteRestaurant(loggedInUser, '');
+        }
+      }
+    });
+  } else {
+    console.error('You have to be logged in to favorite a restaurant.');
+  }
+
+  const popupContent = createPopupContent();
+  const infoButton = createButton(
+    ['right-button', 'arrow-button'],
+    '<i class="arrow right"></i>'
+  );
+
+  infoButton.addEventListener('click', function (event) {
+    console.log('click');
+    event.stopPropagation();
+    displayRestaurantInfoOnClick(id, marker);
+  });
+
+  const div = createPopupContent();
+  div.classList.add('marker-popup');
+
+  createAndAppendChildren(div, [weeklyButton, infoButton]);
+  createAndAppendChildren(popupContent, [div]);
+
+  for (const {date, courses} of data.days) {
+    const dateArray = date.split(',');
+    if (dateArray[0] === currentDayOfWeek) {
+      const dayElement = document.createElement('h2');
+      dayElement.textContent = currentDayOfWeek.toString();
+      popupContent.appendChild(dayElement);
+      foundDailyMenu = true;
+      for (const {name, price} of courses) {
+        const nameElement = document.createElement('p');
+        nameElement.textContent = name;
+        const priceElement = document.createElement('p');
+        priceElement.innerHTML = `<b>${price}</b>`;
+        createAndAppendChildren(popupContent, [nameElement, priceElement]);
+      }
+      popupContent.appendChild(favoriteButton);
+      marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
+    }
+  }
+  if (!foundDailyMenu) {
+    const h2 = document.createElement('h2');
+    h2.textContent = 'No menu available for today';
+    div.appendChild(weeklyButton);
+    div.appendChild(infoButton);
+    createAndAppendChildren(div, [weeklyButton, infoButton]);
+
+    createAndAppendChildren(popupContent, [div, h2, favoriteButton]);
+
+    marker.bindPopup(popupContent, {className: 'custom-style'}).openPopup();
+  }
+}
+
+async function updateFavoriteRestaurant(username, restaurantId) {
+  try {
+    const response = await fetch(
+      `https://10.120.32.94/restaurant/api/v1/users`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          username,
+          favoriteRestaurant: restaurantId,
+        }),
+      }
+    );
+    if (response.status === 200) {
+      console.log('Favorite restaurant updated successfully');
+      console.log(await response.json());
+    }
+    if (!response.ok) {
+      throw new Error('Failed to update favorite restaurant');
+    }
+  } catch (error) {
+    console.error('Error updating favorite restaurant:', error);
   }
 }
 
@@ -485,20 +640,13 @@ const login = async (username, password) => {
 
       localStorage.setItem('loggedInUser', username);
 
-      if (!favoriteRestaurants[username]) {
-        favoriteRestaurants[username] = [];
+      // Set favoriteRestaurant to an empty string if not already set
+      const loggedInUser = localStorage.getItem('loggedInUser');
+      if (!favoriteRestaurants[loggedInUser]) {
+        favoriteRestaurants[loggedInUser] = '';
+        console.log('Favorite restaurants:', favoriteRestaurants);
       } else {
-        const restaurantData = await fetchData(allRestaurants);
-
-        for (const restaurant of restaurantData) {
-          if (favoriteRestaurants[username].includes(restaurant._id)) {
-            for (const marker of markers) {
-              if (marker.restaurantId === restaurant._id) {
-                marker._icon.classList.add('huechange');
-              }
-            }
-          }
-        }
+        console.log('Favorite restaurants already set', favoriteRestaurants);
       }
     } else {
       const errorData = await response.json();
@@ -760,12 +908,11 @@ async function fillRestaurantsArray() {
 
 fillRestaurantsArray();
 
-const searchBar = document.getElementById('search-bar'); // replace 'searchBar' with the actual id of your search bar
+const searchBar = document.getElementById('search-bar');
 
-const resultsContainer = document.getElementById('resultsContainer'); // replace 'resultsContainer' with the actual id of your results container
+const resultsContainer = document.getElementById('resultsContainer');
 
 searchBar.addEventListener('input', function (event) {
-  // clear previous results
   resultsContainer.innerHTML = '';
 
   const target = event.target.value;
@@ -775,17 +922,29 @@ searchBar.addEventListener('input', function (event) {
     const results = searchByName(allRestaurantsArray, target);
 
     if (results.length > 0) {
-      resultsContainer.style.display = 'block'; // show the results container
+      resultsContainer.style.display = 'block';
 
       results.forEach((result) => {
         const resultElement = document.createElement('div');
         resultElement.textContent = result.name;
+        resultElement.classList.add('result-div');
+
+        resultElement.addEventListener('click', function () {
+          const marker = markers.find(
+            (marker) => marker.restaurantId === result._id
+          );
+
+          if (marker) {
+            displayDailyMenuOnClick(marker, result._id);
+          }
+        });
+
         resultsContainer.appendChild(resultElement);
       });
     } else {
-      resultsContainer.style.display = 'none'; // hide the results container
+      resultsContainer.style.display = 'none';
     }
   } else {
-    resultsContainer.style.display = 'none'; // hide the results container
+    resultsContainer.style.display = 'none';
   }
 });
